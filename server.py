@@ -7,12 +7,15 @@ import re
 import ffmpeg
 import tempfile
 import shutil
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = "BE61D9E9B64AC871D85FD7C285F7D"
 
 # Folder path for movies
-MOVIE_FOLDER = r"C:\Users\MOSES\Downloads\Telegram Desktop\Yellowstone\Yellowstone1"
+MOVIE_FOLDER = os.getenv("MOVIE")
 
 # Set Flask app configuration
 app.config['MOVIE_FOLDER'] = MOVIE_FOLDER
