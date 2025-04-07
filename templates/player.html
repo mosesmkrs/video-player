@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Video Player - {{ movie }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --primary-dark: #1a2530;
+            --primary-light: #34495e;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --bg-color: #121212;
+            --player-bg: #000;
+            --control-bg: rgba(0, 0, 0, 0.7);
+            --hover-color: #3498db;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: var(--primary-dark);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .back-btn {
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .back-btn:hover {
+            color: var(--hover-color);
+        }
+        
+        .back-btn i {
+            margin-right: 8px;
+        }
+        
+        .movie-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            background-color: var(--player-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .movie-info {
+            padding: 20px;
+            background-color: var(--primary-dark);
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .movie-info h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+        
+        .movie-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .meta-item i {
+            margin-right: 8px;
+            color: var(--accent-color);
+        }
+        
+        .movie-description {
+            line-height: 1.6;
+            color: #ecf0f1;
+        }
+        
+        .movie-format {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            text-align: center;
+            display: none;
+        }
+        
+        .retry-btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        
+        .retry-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .converted-badge {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .converted-message {
+            background-color: rgba(39, 174, 96, 0.2);
+            border-left: 4px solid #27ae60;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #ecf0f1;
+        }
+        
+        @media (max-width: 768px) {
+            .video-container {
+                height: 50vh;
+            }
+            
+            .movie-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="{{ url_for('index') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Library
+        </a>
+        <h1 class="movie-title">{{ movie_name }}</h1>
+    </header>
+    
+    <div class="video-container" id="videoContainer">
+        <video id="videoPlayer" 
+               src="{{ url_for('stream', movie=movie) }}" 
+               controls
+               autoplay
+               preload="auto">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="error-message" id="errorMessage">
+            <p>Error playing video. Please try again.</p>
+            <button class="retry-btn" id="retryBtn">Retry</button>
+            <a href="{{ url_for('stream', movie=movie) }}" class="download-btn" download="{{ movie }}">
+                <i class="fas fa-download"></i> Download
+            </a>
+        </div>
+    </div>
+    
+    <div class="movie-info">
+        <h2>
+            {{ movie_name }}
+            {% if is_converted %}
+            <span class="converted-badge">Converted</span>
+            {% endif %}
+        </h2>
+        <div class="movie-meta">
+            <div class="meta-item">
+                <i class="fas fa-film"></i>
+                <span class="movie-format">{{ file_extension.upper() }}</span>
+            </div>
+        </div>
+        <div class="movie-description">
+            <p>Enjoy watching your video in high quality. The player supports various video formats including MP4, MKV, AVI, and TS.</p>
+            
+            {% if is_converted %}
+            <div class="converted-message">
+                <i class="fas fa-check-circle"></i> This video was converted from TS format to MP4 for better compatibility.
+            </div>
+            {% elif file_extension == 'ts' %}
+            <p style="margin-top: 10px; color: #f39c12;">
+                <i class="fas fa-info-circle"></i> 
+                Note: Some browsers may have limited support for TS files. If the video doesn't play, you can download it and play with a compatible player.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('videoPlayer');
+            const errorMessage = document.getElementById('errorMessage');
+            const retryBtn = document.getElementById('retryBtn');
+            const fileExtension = "{{ file_extension }}";
+            
+            // Check if there's a saved position
+            const savedPosition = "{{ position }}";
+            if (savedPosition && savedPosition !== "None" && savedPosition !== "") {
+                video.currentTime = parseFloat(savedPosition);
+            }
+            
+            // Handle video errors
+            video.addEventListener('error', function(e) {
+                console.error('Video error:', e);
+                errorMessage.style.display = 'block';
+            });
+            
+            // Retry button click
+            retryBtn.addEventListener('click', function() {
+                errorMessage.style.display = 'none';
+                video.load();
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(function(error) {
+                        console.error('Error playing video:', error);
+                        errorMessage.style.display = 'block';
+                    });
+                }
+            });
+            
+            // Save position when leaving the page
+            window.addEventListener('beforeunload', function() {
+                const position = video.currentTime;
+                const movie = "{{ movie }}";
+                
+                // Save to server
+                fetch('{{ url_for("save_position") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        movie: movie,
+                        position: position
+                    })
+                });
+            });
+        });
+    </script>
+</body>
+</html>

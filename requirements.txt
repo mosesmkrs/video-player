@@ -1,0 +1,7 @@
+#create myvennv
+python -m venv myvenv
+#Run
+.\myvenv\Scripts\activate    
+
+# install the follwing packages using pip
+pip install pytube moviepy tk
